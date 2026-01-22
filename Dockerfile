@@ -19,6 +19,8 @@ RUN npm install
 COPY . .
 
 # 4. Build Next.js App
+# MONGODB_URI is checked at build time by db.js, provide a mock value
+ENV MONGODB_URI=mongodb://mock_build_uri
 RUN npm run build
 
 # 5. Set Environment Variables
