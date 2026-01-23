@@ -4,6 +4,15 @@ FROM nikolaik/python-nodejs:python3.10-nodejs20
 # Set working directory
 WORKDIR /app
 
+# Install system dependencies required for OpenCV and graphics libraries
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # 1. Setup Python Environment
 COPY scripts/requirements.txt ./scripts/
 # Use headless OpenCV to avoid X11 dependencies in server environments
