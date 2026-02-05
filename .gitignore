@@ -12,7 +12,7 @@
 
 # testing
 /coverage
-
+/scripts/venv
 # next.js
 /.next/
 /out/
