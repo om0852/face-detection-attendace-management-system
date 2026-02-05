@@ -5,7 +5,10 @@ import os
 # Suppress logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-img_path = r"d:\Projects\face-detection-attedance-system\public\images.webp"
+# Get the script directory and build path relative to project root
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+img_path = os.path.join(project_root, "public", "images.webp")
 
 backends = ['opencv', 'ssd'] # mtcnn might need extra install
 
