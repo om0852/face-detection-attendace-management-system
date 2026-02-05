@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
+import { playAttendanceSound } from '@/lib/audio';
 
 const Container = styled.div`
   display: grid;
@@ -282,6 +283,9 @@ export default function LiveAttendance() {
                 const data = await res.json();
 
                 if (data.success && data.matches > 0) {
+                    // Play notification sound when attendance is marked
+                    playAttendanceSound();
+
                     setMarkedStudents(prev => {
                         const newStudents = data.marked.filter(
                             newS => !prev.some(p => p.studentId === newS.studentId)

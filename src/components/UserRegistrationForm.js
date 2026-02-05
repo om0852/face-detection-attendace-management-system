@@ -232,44 +232,78 @@ export default function UserRegistrationForm({ onSuccess }) {
     setMessage('');
 
     try {
-      const registerRes = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const registerData = await registerRes.json();
+      // For students: face is required
+      if (formData.role === 'student') {
+        if (!file) {
+          setMessage('❌ Face photo is REQUIRED for student registration. Please upload or capture a photo.');
+          setLoading(false);
+          return;
+        }
 
-      if (!registerData.success) throw new Error(registerData.error);
-
-      if (formData.role === 'student' && file) {
+        // Step 1: Validate face first
+        setMessage('⏳ Validating face...');
         const faceData = new FormData();
         faceData.append('image', file);
-        faceData.append('studentId', formData.studentId);
 
-        const faceRes = await fetch('/api/face/register', {
+        const faceRes = await fetch('/api/face/validate', {
           method: 'POST',
           body: faceData
         });
         const faceResult = await faceRes.json();
 
         if (!faceResult.success) {
-          setMessage(`User created, but face registration failed: ${faceResult.error}`);
+          setMessage(`❌ Face validation failed: ${faceResult.error}. Please try again with better lighting or a clear photo.`);
           setLoading(false);
           return;
         }
+
+        // Step 2: Create user WITH face encoding
+        setMessage('⏳ Creating student account...');
+        const registerRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            faceEncoding: faceResult.encoding
+          }),
+        });
+        const registerData = await registerRes.json();
+
+        if (!registerData.success) throw new Error(registerData.error);
+
+        setMessage('✅ Student registered successfully with face!');
+        if (onSuccess) onSuccess();
+        setFormData({
+          name: '', email: '', password: '', role: 'student',
+          studentId: '', department: '', year: ''
+        });
+        setFile(null);
+        setShowCamera(false);
+
+      } else {
+        // For teachers/admins: no face needed
+        setMessage('⏳ Creating account...');
+        const registerRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        const registerData = await registerRes.json();
+
+        if (!registerData.success) throw new Error(registerData.error);
+
+        setMessage('✅ User registered successfully!');
+        if (onSuccess) onSuccess();
+        setFormData({
+          name: '', email: '', password: '', role: 'student',
+          studentId: '', department: '', year: ''
+        });
+        setFile(null);
+        setShowCamera(false);
       }
 
-      setMessage('User registered successfully!');
-      if (onSuccess) onSuccess();
-      setFormData({
-        name: '', email: '', password: '', role: 'student',
-        studentId: '', department: '', year: ''
-      });
-      setFile(null);
-      setShowCamera(false);
-
     } catch (err) {
-      setMessage(`Error: ${err.message}`);
+      setMessage(`❌ Error: ${err.message}`);
     } finally {
       setLoading(false);
     }

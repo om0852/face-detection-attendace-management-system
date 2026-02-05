@@ -7,7 +7,14 @@ export async function POST(request) {
     try {
         await dbConnect();
         const body = await request.json();
-        const { name, email, password, role, studentId, department, year } = body;
+        const { name, email, password, role, studentId, department, year, faceEncoding } = body;
+
+        // Students require face encoding
+        if (role === 'student' && !faceEncoding) {
+            return NextResponse.json({
+                error: 'Face registration is required for student accounts. Please register your face first.'
+            }, { status: 400 });
+        }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -24,6 +31,8 @@ export async function POST(request) {
             studentId,
             department,
             year,
+            faceEncoding: faceEncoding || null,
+            isFaceRegistered: !!faceEncoding,
         });
 
         return NextResponse.json({ success: true, data: newUser }, { status: 201 });
